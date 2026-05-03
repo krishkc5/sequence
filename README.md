@@ -22,9 +22,23 @@ A GitHub Pages-hosted multiplayer card table for playing Sequence with friends.
 
 ## Deploy
 
-The app deploys to GitHub Pages through `.github/workflows/pages.yml` on pushes to `main`.
+The repository is set up for GitHub Pages branch deployment from `main` and `/ (root)`.
+`npm run build` emits the compiled static site into the repository root, which is what Pages serves.
 
-For multiplayer on the deployed site, add these repository variables or secrets:
+Before pushing a release:
+
+```bash
+npm run test
+npm run build
+git add -A
+git commit -m "Update site"
+git push
+```
+
+For multiplayer on the deployed branch-based site, fill in Firebase's public web config in
+`firebase-config.js` and commit it. No rebuild is needed for config-only changes.
+
+The same values can also be placed in `.env` for local development:
 
 - `VITE_FIREBASE_API_KEY`
 - `VITE_FIREBASE_AUTH_DOMAIN`
