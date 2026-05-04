@@ -170,7 +170,7 @@ export default function App() {
   const [dragPayload, setDragPayload] = useState<DragPayload | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [panel, setPanel] = useState<"rules" | "leaderboard" | null>("leaderboard");
+  const [panel, setPanel] = useState<"rules" | "leaderboard" | null>(null);
   const [now, setNow] = useState(Date.now());
   const lastTimeoutRef = useRef<string>("");
 
@@ -637,11 +637,7 @@ export default function App() {
                     key={player.id}
                   >
                     <span>{player.name}</span>
-                    <div className="mini-hand">
-                      {Array.from({ length: Math.min(round.hands[player.id]?.length ?? 10, 10) }).map((_, index) => (
-                        <CardView card={null} hidden compact key={index} />
-                      ))}
-                    </div>
+                    <small>{round.hands[player.id]?.length ?? 10} cards</small>
                   </div>
                 ))}
             </div>

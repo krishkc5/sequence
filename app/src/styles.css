@@ -398,6 +398,10 @@ button:disabled {
   padding: 10px;
   border-radius: 8px;
   background: rgb(255 255 255 / 11%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 .opponent.current {
@@ -405,8 +409,15 @@ button:disabled {
 }
 
 .opponent span {
-  display: block;
-  margin-bottom: 8px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opponent small {
+  flex: 0 0 auto;
+  color: #dcebe4;
   font-weight: 800;
 }
 
@@ -892,84 +903,97 @@ button:disabled {
 
 @media (max-width: 900px) and (orientation: landscape) {
   .app-shell {
-    padding: 8px;
+    padding: 6px;
   }
 
   .game-layout {
     max-width: none;
-    grid-template-columns: minmax(180px, 25vw) minmax(0, 1fr);
+    min-height: 100svh;
+    grid-template-columns: clamp(150px, 23vw, 220px) minmax(0, 1fr);
     grid-template-areas:
       "top top"
-      "table console"
-      "panel console"
-      "score console";
-    gap: 8px;
+      "table console";
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 6px;
     align-items: start;
   }
 
   .top-bar {
-    gap: 10px;
+    gap: 8px;
+    align-items: center;
   }
 
   .top-bar h1 {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
   .top-actions {
-    gap: 6px;
+    gap: 5px;
   }
 
   .panel-toggle {
-    min-height: 36px;
-    padding: 0 10px;
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 0.86rem;
+  }
+
+  .icon-button {
+    width: 36px;
+    min-height: 34px;
   }
 
   .table {
-    min-height: calc(100vh - 78px);
-    padding: 10px;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    gap: 10px;
+    min-height: calc(100svh - 58px);
+    max-height: calc(100svh - 58px);
+    padding: 8px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    overflow: auto;
   }
 
   .opponents {
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
 
   .opponent {
     min-width: 0;
-    padding: 8px;
+    padding: 7px 8px;
+    font-size: 0.82rem;
   }
 
   .center-piles {
     display: grid;
     grid-template-columns: 1fr;
     justify-items: center;
-    gap: 8px;
+    align-content: center;
+    gap: 7px;
   }
 
   .pile-button {
-    padding: 7px;
+    padding: 6px;
     width: 100%;
+    font-size: 0.84rem;
   }
 
   .turn-strip {
     display: grid;
     gap: 5px;
-    padding: 9px;
-    font-size: 0.82rem;
+    padding: 8px;
+    font-size: 0.78rem;
   }
 
   .player-console {
-    min-height: calc(100vh - 78px);
-    padding: 10px;
-    gap: 10px;
+    min-height: calc(100svh - 58px);
+    max-height: calc(100svh - 58px);
+    padding: 8px;
+    gap: 8px;
     overflow: auto;
   }
 
   .status-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
   }
 
   .status-grid strong {
@@ -977,44 +1001,57 @@ button:disabled {
   }
 
   .play-area {
-    grid-template-columns: minmax(0, 1fr) 180px;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) clamp(130px, 19vw, 164px);
+    gap: 8px;
   }
 
   .hud-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 7px;
   }
 
   .lane {
-    min-height: 112px;
-    padding: 8px;
+    min-height: 94px;
+    padding: 7px;
   }
 
   .hand-lane {
-    min-height: 104px;
+    min-height: 114px;
   }
 
   .overlap-row {
-    min-height: 86px;
-    padding-right: 50px;
+    min-height: 96px;
+    padding: 7px 58px 12px 4px;
   }
 
   .action-rail {
-    padding: 9px;
-    gap: 8px;
+    padding: 8px;
+    gap: 7px;
   }
 
   .action-rail .turn-actions button {
-    min-height: 58px;
+    min-height: 52px;
+    font-size: 0.9rem;
   }
 
   .action-rail .move-buttons button {
-    min-height: 38px;
-    font-size: 0.82rem;
+    min-height: 34px;
+    font-size: 0.74rem;
+    padding: 0 7px;
   }
 
-  .side-panel,
+  .side-panel {
+    position: fixed;
+    top: 56px;
+    right: 8px;
+    z-index: 30;
+    width: min(310px, 52vw);
+    max-height: calc(100svh - 66px);
+    overflow: auto;
+    padding: 12px;
+    font-size: 0.86rem;
+  }
+
   .scoring-panel,
   .complete-panel {
     padding: 10px;
@@ -1022,24 +1059,32 @@ button:disabled {
   }
 
   .card {
-    width: 58px;
+    width: 66px;
   }
 
   .card-compact {
-    width: 36px;
+    width: 38px;
   }
 
   .overlap-row .card:not(:first-child) {
-    margin-left: -28px;
+    margin-left: -22px;
+  }
+
+  .overlap-row .card:hover,
+  .overlap-row .card.selected {
+    margin-right: 20px;
   }
 
   .corner {
-    min-width: 30px;
-    font-size: 0.78rem;
+    min-width: 36px;
+    font-size: 0.88rem;
+    padding: 3px 4px;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 16%);
   }
 
   .pip {
-    font-size: 1.55rem;
+    font-size: 1.72rem;
   }
 }
 
