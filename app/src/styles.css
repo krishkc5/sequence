@@ -526,7 +526,7 @@ button:disabled {
 }
 
 .lane {
-  min-height: 142px;
+  min-height: 132px;
   padding: 10px;
   border: 1px dashed #c9d4cc;
   border-radius: 8px;
@@ -548,6 +548,7 @@ button:disabled {
 
 .made-lane {
   background: #f5f8f6;
+  min-height: 124px;
 }
 
 .lane:last-child {
@@ -1011,12 +1012,16 @@ button:disabled {
   }
 
   .lane {
-    min-height: 94px;
+    min-height: 106px;
     padding: 7px;
   }
 
   .hand-lane {
     min-height: 114px;
+  }
+
+  .made-lane {
+    min-height: 106px;
   }
 
   .overlap-row {

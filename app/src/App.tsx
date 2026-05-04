@@ -379,8 +379,8 @@ export default function App() {
           <span>{laneTitle(kind)}</span>
           <small>{cards.length}</small>
         </div>
-        <div className={classNames("card-row", isHand && "overlap-row")}>
-          {renderCards(cards, kind, isHand)}
+        <div className="card-row overlap-row">
+          {renderCards(cards, kind, true)}
         </div>
       </section>
     );
