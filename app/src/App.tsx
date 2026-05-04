@@ -569,7 +569,7 @@ export default function App() {
       </header>
 
       {panel && (
-        <aside className="side-panel">
+        <aside className="side-panel" onClick={() => setPanel(null)}>
           {panel === "leaderboard" ? (
             <>
               <h2>Leaderboard</h2>

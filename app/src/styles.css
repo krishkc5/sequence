@@ -223,16 +223,17 @@ button:disabled {
 }
 
 .game-layout {
-  max-width: 1440px;
+  width: min(100%, 1680px);
+  max-width: none;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "top top"
-    "table panel"
-    "console panel"
-    "score panel";
-  gap: 18px;
+    "top"
+    "table"
+    "console"
+    "score";
+  gap: 14px;
 }
 
 .landscape-prompt {
@@ -282,11 +283,15 @@ button:disabled {
 }
 
 .side-panel {
-  grid-area: panel;
+  position: fixed;
+  top: 104px;
+  right: 24px;
+  z-index: 40;
+  width: min(360px, calc(100vw - 48px));
+  max-height: calc(100svh - 128px);
+  overflow: auto;
   padding: 18px;
-  align-self: start;
-  position: sticky;
-  top: 18px;
+  cursor: pointer;
 }
 
 .side-panel h2,
@@ -373,7 +378,7 @@ button:disabled {
 
 .table {
   grid-area: table;
-  min-height: 360px;
+  min-height: clamp(420px, 44svh, 620px);
   border-radius: 8px;
   padding: 18px;
   color: #ffffff;
@@ -489,15 +494,15 @@ button:disabled {
 
 .player-console {
   grid-area: console;
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  gap: 10px;
   align-items: end;
 }
 
@@ -508,20 +513,20 @@ button:disabled {
 
 .play-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 230px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 12px;
   align-items: stretch;
 }
 
 .hud-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .lane {
-  min-height: 132px;
-  padding: 10px;
+  min-height: 112px;
+  padding: 8px;
   border: 1px dashed #c9d4cc;
   border-radius: 8px;
   background: #fbfcfa;
@@ -537,12 +542,12 @@ button:disabled {
 }
 
 .hand-lane {
-  min-height: 124px;
+  min-height: 112px;
 }
 
 .made-lane {
   background: #f5f8f6;
-  min-height: 124px;
+  min-height: 108px;
 }
 
 .lane:last-child {
@@ -552,7 +557,7 @@ button:disabled {
 .lane-head {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: #526058;
   font-size: 0.86rem;
   font-weight: 800;
@@ -568,16 +573,16 @@ button:disabled {
 .action-rail {
   min-width: 0;
   display: grid;
-  gap: 12px;
+  gap: 8px;
   align-content: start;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   background: #eef4f1;
   border: 1px solid #cddbd2;
 }
 
 .selected-card {
-  min-height: 64px;
+  min-height: 50px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -598,7 +603,7 @@ button:disabled {
 }
 
 .action-rail .turn-actions button {
-  min-height: 66px;
+  min-height: 52px;
   width: 100%;
   color: #ffffff;
   font-weight: 900;
@@ -616,7 +621,7 @@ button:disabled {
 }
 
 .action-rail .move-buttons button {
-  min-height: 44px;
+  min-height: 36px;
   background: #ffffff;
   color: #23362e;
   border: 1px solid #cddbd2;
@@ -738,8 +743,8 @@ button:disabled {
   gap: 0;
   overflow-x: auto;
   overflow-y: visible;
-  min-height: 96px;
-  padding: 8px 60px 16px 4px;
+  min-height: 88px;
+  padding: 6px 58px 12px 4px;
   scrollbar-width: thin;
 }
 
@@ -805,14 +810,19 @@ button:disabled {
   .game-layout {
     grid-template-areas:
       "top"
-      "panel"
       "table"
       "console"
       "score";
   }
 
   .side-panel {
-    position: static;
+    position: fixed;
+    top: 78px;
+    right: 12px;
+    z-index: 40;
+    width: min(340px, calc(100vw - 24px));
+    max-height: calc(100svh - 92px);
+    overflow: auto;
   }
 
   .brand-panel {
@@ -1049,7 +1059,7 @@ button:disabled {
     position: fixed;
     top: 56px;
     right: 8px;
-    z-index: 30;
+    z-index: 40;
     width: min(310px, 52vw);
     max-height: calc(100svh - 66px);
     overflow: auto;
