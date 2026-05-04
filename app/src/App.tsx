@@ -628,20 +628,6 @@ export default function App() {
       {round && room.phase !== "lobby" && (
         <>
           <section className="table">
-            <div className="opponents">
-              {room.players
-                .filter((player) => player.id !== playerId)
-                .map((player) => (
-                  <div
-                    className={classNames("opponent", round.currentPlayerId === player.id && "current")}
-                    key={player.id}
-                  >
-                    <span>{player.name}</span>
-                    <small>{round.hands[player.id]?.length ?? 10} cards</small>
-                  </div>
-                ))}
-            </div>
-
             <div className="center-piles">
               <div
                 className={classNames("pile-button", "draw-pile", canDraw && "interactive-pile")}

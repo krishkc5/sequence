@@ -382,43 +382,8 @@ button:disabled {
     linear-gradient(145deg, #126343, #0a4b36 58%, #09392d);
   box-shadow: inset 0 0 0 8px rgb(255 255 255 / 7%);
   display: grid;
-  grid-template-rows: 1fr auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 16px;
-}
-
-.opponents {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-content: flex-start;
-}
-
-.opponent {
-  min-width: 160px;
-  padding: 10px;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 11%);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.opponent.current {
-  box-shadow: 0 0 0 2px #e8c66d;
-}
-
-.opponent span {
-  font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.opponent small {
-  flex: 0 0 auto;
-  color: #dcebe4;
-  font-weight: 800;
 }
 
 .mini-hand,
@@ -947,20 +912,9 @@ button:disabled {
     min-height: calc(100svh - 58px);
     max-height: calc(100svh - 58px);
     padding: 8px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 8px;
     overflow: auto;
-  }
-
-  .opponents {
-    display: grid;
-    gap: 6px;
-  }
-
-  .opponent {
-    min-width: 0;
-    padding: 7px 8px;
-    font-size: 0.82rem;
   }
 
   .center-piles {
