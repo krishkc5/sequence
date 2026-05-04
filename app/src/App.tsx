@@ -13,9 +13,9 @@ import {
   Users,
   WifiOff
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CardView } from "./components/CardView";
-import { cardLabel, cardLongLabel, sortCards } from "./game/cards";
+import { cardLabel, cardLongLabel } from "./game/cards";
 import { emptyGroups } from "./game/engine";
 import { resolvePlayerWildRank, resolveScoringWildRank, validateDeclaredHand, validateNaturalSequence } from "./game/rules";
 import { groupCards } from "./game/rules";
@@ -37,6 +37,10 @@ import { Card, GameRoom, HudGroups, Rank, RANKS, ScoreBreakdown } from "./types"
 
 const activeRoomKey = "sequence-active-room";
 const activePlayerKey = "sequence-active-player";
+
+type DragPayload =
+  | { type: "hand"; cardUid: string }
+  | { type: "draw"; source: "deck" | "discard" };
 
 function classNames(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -91,7 +95,12 @@ function reconcileGroups(groups: HudGroups, hand: Card[]): HudGroups {
   return { ungrouped, natural, sequence, final };
 }
 
-function moveCard(groups: HudGroups, cardUid: string, target: keyof HudGroups): HudGroups {
+function moveCard(
+  groups: HudGroups,
+  cardUid: string,
+  target: keyof HudGroups,
+  beforeUid: string | null = null
+): HudGroups {
   const next: HudGroups = {
     ungrouped: groups.ungrouped.filter((id) => id !== cardUid),
     natural: groups.natural.filter((id) => id !== cardUid),
@@ -99,8 +108,30 @@ function moveCard(groups: HudGroups, cardUid: string, target: keyof HudGroups): 
     final: groups.final.filter((id) => id !== cardUid)
   };
 
-  next[target] = [...next[target], cardUid];
+  const targetCards = [...next[target]];
+  const insertIndex = beforeUid ? targetCards.indexOf(beforeUid) : -1;
+
+  if (insertIndex >= 0) {
+    targetCards.splice(insertIndex, 0, cardUid);
+  } else {
+    targetCards.push(cardUid);
+  }
+
+  next[target] = targetCards;
   return next;
+}
+
+function runWithMotion(update: () => void) {
+  const motionDocument = document as Document & {
+    startViewTransition?: (updateCallback: () => void) => void;
+  };
+
+  if (motionDocument.startViewTransition) {
+    motionDocument.startViewTransition(update);
+    return;
+  }
+
+  update();
 }
 
 function persistActiveSeat(code: string, playerId: string) {
@@ -131,7 +162,7 @@ export default function App() {
   const [room, setRoom] = useState<GameRoom | null>(null);
   const [groups, setGroups] = useState<HudGroups>(() => emptyGroups());
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [dragCard, setDragCard] = useState<string | null>(null);
+  const [dragPayload, setDragPayload] = useState<DragPayload | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [panel, setPanel] = useState<"rules" | "leaderboard" | null>("leaderboard");
@@ -247,48 +278,105 @@ export default function App() {
     });
   }
 
-  function laneDrop(target: keyof HudGroups) {
-    const cardUid = dragCard ?? selectedCard;
+  function moveSelectedCard(target: keyof HudGroups, beforeUid: string | null = null) {
+    const cardUid = dragPayload?.type === "hand" ? dragPayload.cardUid : selectedCard;
     if (!cardUid) {
       return;
     }
 
-    setGroups((currentGroups) => moveCard(currentGroups, cardUid, target));
-    setSelectedCard(cardUid);
-    setDragCard(null);
+    runWithMotion(() => {
+      setGroups((currentGroups) => moveCard(currentGroups, cardUid, target, beforeUid));
+      setSelectedCard(cardUid);
+    });
   }
 
-  function renderCards(cards: Card[], compact = false) {
+  function handleLaneDrop(target: keyof HudGroups, beforeUid: string | null = null) {
+    if (!room) {
+      return;
+    }
+
+    if (dragPayload?.type === "draw" && canDraw) {
+      runAction(() => drawOnlineCard(room.code, playerId, dragPayload.source));
+      setDragPayload(null);
+      return;
+    }
+
+    moveSelectedCard(target, beforeUid);
+    setDragPayload(null);
+  }
+
+  function handleDiscardDrop(faceDown: boolean) {
+    const cardUid = dragPayload?.type === "hand" ? dragPayload.cardUid : selectedCard;
+    if (!room || !round || !cardUid || !canDropHandCard) {
+      setDragPayload(null);
+      return;
+    }
+
+    if (faceDown) {
+      const validation = validateDeclaredHand(hand, cardUid, groups, playerWildRank);
+      if (!validation.valid) {
+        setError(validation.message);
+        setDragPayload(null);
+        return;
+      }
+    }
+
+    runAction(async () => {
+      await discardOnlineCard(room.code, playerId, cardUid, faceDown, groups);
+      setSelectedCard(null);
+    });
+    setDragPayload(null);
+  }
+
+  function preventDropDefault(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+  }
+
+  function renderCards(cards: Card[], kind: keyof HudGroups, overlapped = false, compact = false) {
     return cards.map((card) => (
       <CardView
         key={card.uid}
         card={card}
         compact={compact}
+        overlapped={overlapped}
         draggable
         selected={selectedCard === card.uid}
-        onClick={() => setSelectedCard(card.uid)}
+        onClick={(event) => {
+          event.stopPropagation();
+          setSelectedCard(card.uid);
+        }}
         onDragStart={() => {
           setSelectedCard(card.uid);
-          setDragCard(card.uid);
+          setDragPayload({ type: "hand", cardUid: card.uid });
+        }}
+        onDragEnd={() => setDragPayload(null)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.stopPropagation();
+          handleLaneDrop(kind, card.uid);
         }}
       />
     ));
   }
 
   function renderLane(kind: keyof HudGroups) {
-    const cards = kind === "ungrouped" ? sortCards(groupedCards[kind]) : groupedCards[kind];
+    const cards = groupedCards[kind];
+    const isHand = kind === "ungrouped";
 
     return (
       <section
-        className={classNames("lane", kind !== "ungrouped" && "made-lane")}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={() => laneDrop(kind)}
+        className={classNames("lane", kind !== "ungrouped" && "made-lane", isHand && "hand-lane")}
+        onClick={() => selectedCard && moveSelectedCard(kind)}
+        onDragOver={preventDropDefault}
+        onDrop={() => handleLaneDrop(kind)}
       >
         <div className="lane-head">
           <span>{laneTitle(kind)}</span>
           <small>{cards.length}</small>
         </div>
-        <div className="card-row">{renderCards(cards)}</div>
+        <div className={classNames("card-row", isHand && "overlap-row")}>
+          {renderCards(cards, kind, isHand)}
+        </div>
       </section>
     );
   }
@@ -377,17 +465,35 @@ export default function App() {
     : null;
   const myScore = round?.scoring[playerId];
   const canDraw = isMyTurn && !!round && !round.turn.drawn && !busy;
-  const canDiscard = isMyTurn && !!round?.turn.drawn && !!selected && !busy;
+  const canDrawDiscard = canDraw && !!topDiscard;
+  const canDropHandCard = isMyTurn && !!round?.turn.drawn && !busy;
+  const canDiscard = canDropHandCard && !!selected;
   const canDeclare = canDiscard && declareValidation.valid;
   const ownChosenRank = round?.selectedJokers[playerId] ?? "A";
-  const canPeekSecret = room.phase === "playing" && round?.config.kind === "secret" && naturalReady;
+  const secretTurnLocked = room.phase === "playing" && isMyTurn && !!round?.turn.drawn;
+  const canPeekSecret =
+    room.phase === "playing" && round?.config.kind === "secret" && naturalReady && !secretTurnLocked;
   const canShowSecret =
     round?.config.kind === "secret" &&
     round.secretCard &&
-    (round.secretRevealed || room.phase === "scoring" || round.secretSeen[playerId]);
+    (round.secretRevealed ||
+      room.phase === "scoring" ||
+      (round.secretSeen[playerId] && !secretTurnLocked));
+  const secretStatus = secretTurnLocked
+    ? "Finish turn"
+    : canShowSecret
+      ? "Secret"
+      : round?.secretSeen[playerId]
+        ? "Seen"
+        : "Hidden";
 
   return (
     <main className="app-shell game-layout">
+      <div className="landscape-prompt" role="status">
+        <strong>Rotate your phone</strong>
+        <span>Use landscape orientation for the card table.</span>
+      </div>
+
       <header className="top-bar">
         <div>
           <p className="eyebrow">Room {room.code}</p>
@@ -536,25 +642,64 @@ export default function App() {
             </div>
 
             <div className="center-piles">
-              <button className="pile-button" type="button" disabled={!canDraw} onClick={() => runAction(() => drawOnlineCard(room.code, playerId, "deck"))}>
-                <CardView card={null} hidden />
+              <div
+                className={classNames("pile-button", "draw-pile", canDraw && "interactive-pile")}
+                role="button"
+                tabIndex={canDraw ? 0 : -1}
+                aria-disabled={!canDraw}
+                onClick={() => canDraw && runAction(() => drawOnlineCard(room.code, playerId, "deck"))}
+              >
+                <CardView
+                  card={null}
+                  hidden
+                  draggable={canDraw}
+                  onDragStart={() => setDragPayload({ type: "draw", source: "deck" })}
+                  onDragEnd={() => setDragPayload(null)}
+                />
                 <span>{round.deck.length}</span>
-              </button>
+              </div>
 
-              <button className="pile-button" type="button" disabled={!canDraw || !topDiscard} onClick={() => runAction(() => drawOnlineCard(room.code, playerId, "discard"))}>
-                <CardView card={topDiscard} />
-                <span>Discard</span>
-              </button>
+              <div
+                className={classNames(
+                  "pile-button",
+                  "discard-pile",
+                  (canDrawDiscard || canDropHandCard) && "interactive-pile",
+                  canDropHandCard && "drop-pile"
+                )}
+                role="button"
+                tabIndex={canDrawDiscard || canDropHandCard ? 0 : -1}
+                aria-disabled={!canDrawDiscard && !canDropHandCard}
+                onClick={() => {
+                  if (canDrawDiscard) {
+                    runAction(() => drawOnlineCard(room.code, playerId, "discard"));
+                    return;
+                  }
+
+                  if (canDropHandCard) {
+                    handleDiscardDrop(false);
+                  }
+                }}
+                onDragOver={canDropHandCard ? preventDropDefault : undefined}
+                onDrop={() => handleDiscardDrop(false)}
+              >
+                <CardView
+                  card={topDiscard}
+                  draggable={canDrawDiscard}
+                  onDragStart={() => setDragPayload({ type: "draw", source: "discard" })}
+                  onDragEnd={() => setDragPayload(null)}
+                />
+                <span>{canDiscard ? "Drop up" : "Discard"}</span>
+              </div>
 
               {round.config.kind === "secret" && (
                 <button
-                  className="pile-button"
+                  className={classNames("pile-button", "secret-pile", (canPeekSecret || canShowSecret) && "interactive-pile")}
                   type="button"
                   disabled={!canPeekSecret && !canShowSecret}
-                  onClick={() => runAction(() => seeOnlineSecret(room.code, playerId))}
+                  onClick={() => canPeekSecret && runAction(() => seeOnlineSecret(room.code, playerId))}
                 >
                   <CardView card={canShowSecret ? round.secretCard : null} hidden={!canShowSecret} />
-                  <span>{canShowSecret ? "Secret" : round.secretSeen[playerId] ? "Seen" : "Hidden"}</span>
+                  <span>{secretStatus}</span>
                 </button>
               )}
             </div>
@@ -609,74 +754,77 @@ export default function App() {
                 <div>
                   <span className="eyebrow">Secret</span>
                   <strong>
-                    {canShowSecret && round.secretCard ? cardLabel(round.secretCard) : naturalReady ? "Peek ready" : "Locked"}
+                    {canShowSecret && round.secretCard
+                      ? cardLabel(round.secretCard)
+                      : secretTurnLocked && naturalReady
+                        ? "After discard"
+                        : naturalReady
+                          ? "Peek ready"
+                          : "Locked"}
                   </strong>
                 </div>
               )}
             </div>
 
-            <div className="hud-grid">
-              {renderLane("natural")}
-              {renderLane("sequence")}
-              {renderLane("final")}
-              {renderLane("ungrouped")}
-            </div>
+            <div className="play-area">
+              <div className="hud-grid">
+                {renderLane("natural")}
+                {renderLane("sequence")}
+                {renderLane("final")}
+                {renderLane("ungrouped")}
+              </div>
 
-            <div className="hand-actions">
-              <div className="selected-card">
-                {selected ? (
-                  <>
-                    <CardView card={selected} compact />
-                    <span>{cardLongLabel(selected)}</span>
-                  </>
-                ) : (
-                  <span>No card selected</span>
-                )}
-              </div>
-              <div className="move-buttons">
-                {(["natural", "sequence", "final", "ungrouped"] as const).map((target) => (
+              <aside className="action-rail">
+                <div className="selected-card">
+                  {selected ? (
+                    <>
+                      <CardView card={selected} compact />
+                      <span>{cardLongLabel(selected)}</span>
+                    </>
+                  ) : (
+                    <span>Select or drag a card</span>
+                  )}
+                </div>
+                <div className="turn-actions">
                   <button
+                    className="discard-action"
                     type="button"
-                    disabled={!selectedCard}
-                    key={target}
-                    onClick={() => selectedCard && setGroups((currentGroups) => moveCard(currentGroups, selectedCard, target))}
+                    disabled={!canDropHandCard}
+                    onDragOver={canDropHandCard ? preventDropDefault : undefined}
+                    onDrop={() => handleDiscardDrop(false)}
+                    onClick={() => handleDiscardDrop(false)}
                   >
-                    {laneTitle(target)}
+                    <Eye size={22} />
+                    Discard up
                   </button>
-                ))}
-              </div>
-              <div className="turn-actions">
-                <button
-                  type="button"
-                  disabled={!canDiscard}
-                  onClick={() =>
-                    selected &&
-                    runAction(async () => {
-                      await discardOnlineCard(room.code, playerId, selected.uid, false, groups);
-                      setSelectedCard(null);
-                    })
-                  }
-                >
-                  <Eye size={18} />
-                  Discard up
-                </button>
-                <button
-                  className="primary-action"
-                  type="button"
-                  disabled={!canDeclare}
-                  title={declareValidation.message}
-                  onClick={() =>
-                    selected &&
-                    runAction(async () => {
-                      await discardOnlineCard(room.code, playerId, selected.uid, true, groups);
-                      setSelectedCard(null);
-                    })
-                  }
-                >
-                  <EyeOff size={18} />
-                  Declare
-                </button>
-              </div>
+                  <button
+                    className="declare-action"
+                    type="button"
+                    disabled={!canDeclare}
+                    title={declareValidation.message}
+                    onDragOver={canDropHandCard ? preventDropDefault : undefined}
+                    onDrop={() => handleDiscardDrop(true)}
+                    onClick={() => handleDiscardDrop(true)}
+                  >
+                    <EyeOff size={22} />
+                    Declare
+                  </button>
+                </div>
+                <div className="move-buttons">
+                  {(["natural", "sequence", "final", "ungrouped"] as const).map((target) => (
+                    <button
+                      type="button"
+                      disabled={!selectedCard}
+                      key={target}
+                      onClick={() => moveSelectedCard(target)}
+                      onDragOver={preventDropDefault}
+                      onDrop={() => handleLaneDrop(target)}
+                    >
+                      {laneTitle(target)}
+                    </button>
+                  ))}
+                </div>
+              </aside>
             </div>
 
             {room.phase === "playing" && selected && !declareValidation.valid && (
