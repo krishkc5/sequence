@@ -157,6 +157,29 @@ function scoreLabel(score?: ScoreBreakdown): string {
   return score.multiplier > 1 ? `${score.rawScore} × ${score.multiplier} = ${score.score}` : String(score.score);
 }
 
+function tokenStem(name: string): string {
+  const compact = name.trim().replace(/[^a-z0-9]/gi, "");
+  return compact || "?";
+}
+
+function turnTokenLabels(players: GameRoom["players"]): Record<string, string> {
+  const firstLetterCounts = players.reduce<Record<string, number>>((counts, player) => {
+    const first = tokenStem(player.name).slice(0, 1).toUpperCase();
+    counts[first] = (counts[first] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  return Object.fromEntries(
+    players.map((player) => {
+      const stem = tokenStem(player.name);
+      const first = stem.slice(0, 1).toUpperCase();
+      const label =
+        firstLetterCounts[first] > 1 ? stem.slice(0, 2).toUpperCase() : first;
+      return [player.id, label];
+    })
+  );
+}
+
 export default function App() {
   const [name, setName] = useState("");
   const [joinCode, setJoinCode] = useState("");
@@ -216,6 +239,7 @@ export default function App() {
   const playerWildRank = round ? resolvePlayerWildRank(round, playerId) : null;
   const scoringWildRank = round ? resolveScoringWildRank(round) : null;
   const groupedCards = useMemo(() => groupCards(hand, groups), [hand, groups]);
+  const tokenLabels = useMemo(() => (room ? turnTokenLabels(room.players) : {}), [room]);
   const naturalReady = validateNaturalSequence(groupedCards.natural);
   const declareValidation =
     round && selected
@@ -628,6 +652,18 @@ export default function App() {
       {round && room.phase !== "lobby" && (
         <>
           <section className="table">
+            <div className="turn-tokens" aria-label="Turn order">
+              {room.players.map((player) => (
+                <span
+                  className={classNames("turn-token", round.currentPlayerId === player.id && "active")}
+                  key={player.id}
+                  title={`${player.name}${round.currentPlayerId === player.id ? "'s turn" : ""}`}
+                >
+                  {tokenLabels[player.id]}
+                </span>
+              ))}
+            </div>
+
             <div className="center-piles">
               <div
                 className={classNames("pile-button", "draw-pile", canDraw && "interactive-pile")}
