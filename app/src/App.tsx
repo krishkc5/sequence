@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CardView } from "./components/CardView";
-import { cardLabel, cardLongLabel } from "./game/cards";
+import { cardLabel, cardLongLabel, sortCards } from "./game/cards";
 import { emptyGroups } from "./game/engine";
 import { resolvePlayerWildRank, resolveScoringWildRank, validateDeclaredHand, validateNaturalSequence } from "./game/rules";
 import { groupCards } from "./game/rules";
@@ -92,7 +92,12 @@ function reconcileGroups(groups: HudGroups, hand: Card[]): HudGroups {
     }
   }
 
-  return { ungrouped, natural, sequence, final };
+  const handLookup = new Map(hand.map((card) => [card.uid, card]));
+  const sortedUngrouped = sortCards(
+    ungrouped.map((id) => handLookup.get(id)).filter((card): card is Card => !!card)
+  ).map((card) => card.uid);
+
+  return { ungrouped: sortedUngrouped, natural, sequence, final };
 }
 
 function moveCard(
@@ -360,8 +365,8 @@ export default function App() {
   }
 
   function renderLane(kind: keyof HudGroups) {
-    const cards = groupedCards[kind];
     const isHand = kind === "ungrouped";
+    const cards = isHand ? sortCards(groupedCards[kind]) : groupedCards[kind];
 
     return (
       <section

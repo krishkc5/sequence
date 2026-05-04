@@ -675,7 +675,7 @@ button:disabled {
 
 .card {
   position: relative;
-  width: 72px;
+  width: 76px;
   aspect-ratio: 5 / 7;
   border: 1px solid #ccd4ce;
   border-radius: 8px;
@@ -722,7 +722,7 @@ button:disabled {
 }
 
 .card-compact {
-  width: 42px;
+  width: 46px;
   border-radius: 6px;
   padding: 4px;
 }
@@ -733,7 +733,7 @@ button:disabled {
   overflow-x: auto;
   overflow-y: visible;
   min-height: 96px;
-  padding: 8px 54px 16px 4px;
+  padding: 8px 60px 16px 4px;
   scrollbar-width: thin;
 }
 
@@ -742,7 +742,7 @@ button:disabled {
 }
 
 .overlap-row .card:not(:first-child) {
-  margin-left: -42px;
+  margin-left: -36px;
 }
 
 .overlap-row .card:hover,
@@ -752,18 +752,23 @@ button:disabled {
 
 .corner {
   position: absolute;
-  top: 6px;
-  left: 7px;
+  top: 5px;
+  left: 5px;
   font-weight: 900;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   line-height: 1;
+  min-width: 34px;
+  padding: 2px 3px;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 84%);
+  text-align: left;
 }
 
 .corner.bottom {
   top: auto;
   left: auto;
-  right: 7px;
-  bottom: 6px;
+  right: 5px;
+  bottom: 5px;
   transform: rotate(180deg);
 }
 
@@ -863,15 +868,15 @@ button:disabled {
   }
 
   .card {
-    width: 58px;
+    width: 62px;
   }
 
   .card-compact {
-    width: 36px;
+    width: 38px;
   }
 
   .overlap-row .card:not(:first-child) {
-    margin-left: -34px;
+    margin-left: -30px;
   }
 
   .overlap-row .card:hover,
@@ -882,6 +887,159 @@ button:disabled {
   .timer-box,
   .join-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .app-shell {
+    padding: 8px;
+  }
+
+  .game-layout {
+    max-width: none;
+    grid-template-columns: minmax(180px, 25vw) minmax(0, 1fr);
+    grid-template-areas:
+      "top top"
+      "table console"
+      "panel console"
+      "score console";
+    gap: 8px;
+    align-items: start;
+  }
+
+  .top-bar {
+    gap: 10px;
+  }
+
+  .top-bar h1 {
+    font-size: 1.15rem;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .panel-toggle {
+    min-height: 36px;
+    padding: 0 10px;
+  }
+
+  .table {
+    min-height: calc(100vh - 78px);
+    padding: 10px;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 10px;
+  }
+
+  .opponents {
+    display: grid;
+    gap: 8px;
+  }
+
+  .opponent {
+    min-width: 0;
+    padding: 8px;
+  }
+
+  .center-piles {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 8px;
+  }
+
+  .pile-button {
+    padding: 7px;
+    width: 100%;
+  }
+
+  .turn-strip {
+    display: grid;
+    gap: 5px;
+    padding: 9px;
+    font-size: 0.82rem;
+  }
+
+  .player-console {
+    min-height: calc(100vh - 78px);
+    padding: 10px;
+    gap: 10px;
+    overflow: auto;
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .status-grid strong {
+    font-size: 0.95rem;
+  }
+
+  .play-area {
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 10px;
+  }
+
+  .hud-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .lane {
+    min-height: 112px;
+    padding: 8px;
+  }
+
+  .hand-lane {
+    min-height: 104px;
+  }
+
+  .overlap-row {
+    min-height: 86px;
+    padding-right: 50px;
+  }
+
+  .action-rail {
+    padding: 9px;
+    gap: 8px;
+  }
+
+  .action-rail .turn-actions button {
+    min-height: 58px;
+  }
+
+  .action-rail .move-buttons button {
+    min-height: 38px;
+    font-size: 0.82rem;
+  }
+
+  .side-panel,
+  .scoring-panel,
+  .complete-panel {
+    padding: 10px;
+    font-size: 0.86rem;
+  }
+
+  .card {
+    width: 58px;
+  }
+
+  .card-compact {
+    width: 36px;
+  }
+
+  .overlap-row .card:not(:first-child) {
+    margin-left: -28px;
+  }
+
+  .corner {
+    min-width: 30px;
+    font-size: 0.78rem;
+  }
+
+  .pip {
+    font-size: 1.55rem;
   }
 }
 

@@ -57,6 +57,7 @@ export function CardView({
 
   const red = isRed(card);
   const suit = card.suit ? suitSymbols[card.suit] : "★";
+  const cornerLabel = card.rank === "JOKER" ? "👑" : `${card.rank}${suit}`;
 
   return (
     <button
@@ -76,9 +77,9 @@ export function CardView({
       onDrop={onDrop}
       title={cardLabel(card)}
     >
-      <span className="corner">{card.rank === "JOKER" ? "🤡" : card.rank}</span>
-      <span className="pip">{card.rank === "JOKER" ? "🎪" : suit}</span>
-      <span className="corner bottom">{card.rank === "JOKER" ? "🤡" : card.rank}</span>
+      <span className="corner">{cornerLabel}</span>
+      <span className="pip">{card.rank === "JOKER" ? "👑" : suit}</span>
+      <span className="corner bottom">{cornerLabel}</span>
     </button>
   );
 }
