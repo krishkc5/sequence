@@ -2,7 +2,6 @@ import {
   Check,
   Copy,
   Crown,
-  Eye,
   EyeOff,
   LogIn,
   Play,
@@ -208,10 +207,12 @@ export default function App() {
     }
 
     return subscribeRoom(roomCode, (nextRoom) => {
-      setRoom(nextRoom);
-      if (!nextRoom) {
-        clearActiveSeat();
-      }
+      runWithMotion(() => {
+        setRoom(nextRoom);
+        if (!nextRoom) {
+          clearActiveSeat();
+        }
+      });
     });
   }, [roomCode]);
 
@@ -236,6 +237,7 @@ export default function App() {
   const isMyTurn = room?.phase === "playing" && round?.currentPlayerId === playerId;
   const topDiscard = round?.discardPile[round.discardPile.length - 1] ?? null;
   const selected = hand.find((card) => card.uid === selectedCard) ?? null;
+  const recentDrawCard = isMyTurn && round?.turn.drawn ? round.turn.drawnCardUid : null;
   const playerWildRank = round ? resolvePlayerWildRank(round, playerId) : null;
   const scoringWildRank = round ? resolveScoringWildRank(round) : null;
   const groupedCards = useMemo(() => groupCards(hand, groups), [hand, groups]);
@@ -370,6 +372,8 @@ export default function App() {
         overlapped={overlapped}
         draggable
         selected={selectedCard === card.uid}
+        recent={recentDrawCard === card.uid}
+        motionId={card.uid}
         onClick={(event) => {
           event.stopPropagation();
           setSelectedCard(card.uid);
@@ -394,7 +398,12 @@ export default function App() {
 
     return (
       <section
-        className={classNames("lane", kind !== "ungrouped" && "made-lane", isHand && "hand-lane")}
+        className={classNames(
+          "lane",
+          kind !== "ungrouped" && "made-lane",
+          isHand && "hand-lane",
+          selectedCard && "lane-target"
+        )}
         onClick={() => selectedCard && moveSelectedCard(kind)}
         onDragOver={preventDropDefault}
         onDrop={() => handleLaneDrop(kind)}
@@ -707,6 +716,7 @@ export default function App() {
               >
                 <CardView
                   card={topDiscard}
+                  motionId={topDiscard?.uid}
                   draggable={canDrawDiscard}
                   onDragStart={() => setDragPayload({ type: "draw", source: "discard" })}
                   onDragEnd={() => setDragPayload(null)}
@@ -810,17 +820,6 @@ export default function App() {
                 </div>
                 <div className="turn-actions">
                   <button
-                    className="discard-action"
-                    type="button"
-                    disabled={!canDropHandCard}
-                    onDragOver={canDropHandCard ? preventDropDefault : undefined}
-                    onDrop={() => handleDiscardDrop(false)}
-                    onClick={() => handleDiscardDrop(false)}
-                  >
-                    <Eye size={22} />
-                    Discard up
-                  </button>
-                  <button
                     className="declare-action"
                     type="button"
                     disabled={!canDeclare}
@@ -832,20 +831,6 @@ export default function App() {
                     <EyeOff size={22} />
                     Declare
                   </button>
-                </div>
-                <div className="move-buttons">
-                  {(["natural", "sequence", "final", "ungrouped"] as const).map((target) => (
-                    <button
-                      type="button"
-                      disabled={!selectedCard}
-                      key={target}
-                      onClick={() => moveSelectedCard(target)}
-                      onDragOver={preventDropDefault}
-                      onDrop={() => handleLaneDrop(target)}
-                    >
-                      {laneTitle(target)}
-                    </button>
-                  ))}
                 </div>
               </aside>
             </div>

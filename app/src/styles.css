@@ -43,7 +43,14 @@ button {
 
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-group(*) {
-    animation-duration: 180ms;
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: inherit;
+    animation-timing-function: inherit;
   }
 }
 
@@ -174,7 +181,6 @@ input:disabled {
 .auth-panel button,
 .join-row button,
 .turn-actions button,
-.move-buttons button,
 .panel-toggle,
 .icon-button {
   min-height: 42px;
@@ -513,7 +519,7 @@ button:disabled {
 
 .play-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px;
+  grid-template-columns: minmax(0, 1fr) 170px;
   gap: 12px;
   align-items: stretch;
 }
@@ -539,6 +545,16 @@ button:disabled {
 .lane:hover {
   border-color: #85a995;
   background: #f8fbf8;
+}
+
+.lane-target {
+  cursor: pointer;
+}
+
+.lane-target:hover {
+  border-color: #6f9f83;
+  background: #f5fbf7;
+  box-shadow: inset 0 0 0 2px rgb(111 159 131 / 12%);
 }
 
 .hand-lane {
@@ -590,42 +606,28 @@ button:disabled {
   font-weight: 800;
 }
 
-.move-buttons,
 .turn-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.action-rail .turn-actions,
-.action-rail .move-buttons {
+.action-rail .turn-actions {
   display: grid;
+  grid-column: 1 / -1;
 }
 
 .action-rail .turn-actions button {
-  min-height: 52px;
+  min-height: 62px;
   width: 100%;
   color: #ffffff;
   font-weight: 900;
   font-size: 1rem;
 }
 
-.discard-action {
-  background: #d85f28;
-  box-shadow: 0 12px 24px rgb(216 95 40 / 24%);
-}
-
 .declare-action {
   background: #246b59;
   box-shadow: 0 12px 24px rgb(36 107 89 / 24%);
-}
-
-.action-rail .move-buttons button {
-  min-height: 36px;
-  background: #ffffff;
-  color: #23362e;
-  border: 1px solid #cddbd2;
-  font-weight: 800;
 }
 
 .scoring-panel,
@@ -698,11 +700,13 @@ button:disabled {
   touch-action: manipulation;
   animation: card-pop 160ms ease both;
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    margin 180ms ease,
-    outline-color 180ms ease,
-    opacity 180ms ease;
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease,
+    margin 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    outline-color 220ms ease,
+    outline-offset 220ms ease,
+    opacity 220ms ease;
+  will-change: transform, margin;
 }
 
 .card.selected {
@@ -714,6 +718,19 @@ button:disabled {
 
 .card:active {
   transform: translateY(-7px) rotate(-1deg);
+}
+
+.card.recent-draw {
+  outline: 3px solid #4f8edc;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 5px rgb(79 142 220 / 15%),
+    0 12px 26px rgb(0 0 0 / 22%);
+}
+
+.card.selected.recent-draw {
+  outline-color: #4f8edc;
+  transform: translateY(-6px);
 }
 
 .card.red {
@@ -1012,7 +1029,7 @@ button:disabled {
   }
 
   .play-area {
-    grid-template-columns: minmax(0, 1fr) clamp(130px, 19vw, 164px);
+    grid-template-columns: minmax(0, 1fr) clamp(112px, 16vw, 142px);
     gap: 8px;
   }
 
@@ -1047,12 +1064,6 @@ button:disabled {
   .action-rail .turn-actions button {
     min-height: 52px;
     font-size: 0.9rem;
-  }
-
-  .action-rail .move-buttons button {
-    min-height: 34px;
-    font-size: 0.74rem;
-    padding: 0 7px;
   }
 
   .side-panel {
