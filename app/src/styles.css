@@ -593,8 +593,9 @@ button:disabled {
   align-content: start;
   padding: 10px;
   border-radius: 8px;
-  background: #eef4f1;
-  border: 1px solid #cddbd2;
+  background: #e7f0eb;
+  border: 1px solid #b8cbc0;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 55%);
 }
 
 .selected-card {
@@ -602,8 +603,13 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #526058;
+  padding: 8px;
+  border: 1px solid #d1ddd6;
+  border-radius: 8px;
+  color: #34443b;
+  background: #f8fbf9;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .turn-actions {
@@ -628,6 +634,14 @@ button:disabled {
 .declare-action {
   background: #246b59;
   box-shadow: 0 12px 24px rgb(36 107 89 / 24%);
+}
+
+.action-rail .turn-actions button:disabled {
+  opacity: 1;
+  color: #41554b;
+  background: #dbe7e0;
+  border: 1px solid #b6c9bd;
+  box-shadow: none;
 }
 
 .scoring-panel,
